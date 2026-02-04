@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleep Disorder Risk Analysis Tool</title>
+    <!-- Optional: Bootstrap CDN for responsive UI -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Optional: Chart.js CDN for result graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f0f8ff; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        form { margin-bottom: 20px; }
+        #results { display: none; margin-top: 20px; }
+        #chartContainer { width: 100%; height: 200px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sleep Disorder Risk Analysis Tool</h1>
+        <p class="text-center">This tool assesses your risk of sleep disorders based on your inputs. It is not a medical diagnosis—consult a doctor for professional advice.</p>
+        
+        <form id="assessmentForm">
+            <div class="mb-3">
+                <label for="age" class="form-label">Age (18-60):</label>
+                <input type="number" id="age" class="form-control" min="18" max="60" required>
+            </div>
+            <div class="mb-3">
+                <label for="sleepHours" class="form-label">Sleep Hours per Day (4-10):</label>
+                <input type="number" id="sleepHours" class="form-control" min="4" max="10" required>
+            </div>
+            <div class="mb-3">
+                <label for="difficultyFalling" class="form-label">Difficulty Falling Asleep:</label>
+                <select id="difficultyFalling" class="form-select" required>
+                    <option value="">Select</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="nightAwakenings" class="form-label">Night Awakenings:</label>
+                <select id="nightAwakenings" class="form-select" required>
+                    <option value="">Select</option>
+                    <option value="often">Often</option>
+                    <option value="sometimes">Sometimes</option>
+                    <option value="never">Never</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="daytimeSleepiness" class="form-label">Daytime Sleepiness:</label>
+                <select id="daytimeSleepiness" class="form-select" required>
+                    <option value="">Select</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="screenUsage" class="form-label">Screen Usage Before Bed:</label>
+                <select id="screenUsage" class="form-select" required>
+                    <option value="">Select</option>
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="stressLevel" class="form-label">Stress Level:</label>
+                <select id="stressLevel" class="form-select" required>
+                    <option value="">Select</option>
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Analyze Risk</button>
+        </form>
+        
+        <div id="results">
+            <h3>Risk Level: <span id="riskLevel"></span></h3>
+            <p>Risk Score: <span id="riskScore"></span></p>
+            <p id="healthMessage"></p>
+            <p id="suggestions"></p>
+            <div id="chartContainer">
+                <canvas id="riskChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('assessmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get user inputs
+            const age = parseInt(document.getElementById('age').value);
+            const sleepHours = parseInt(document.getElementById('sleepHours').value);
+            const difficultyFalling = document.getElementById('difficultyFalling').value;
+            const nightAwakenings = document.getElementById('nightAwakenings').value;
+            const daytimeSleepiness = document.getElementById('daytimeSleepiness').value;
+            const screenUsage = document.getElementById('screenUsage').value;
+            const stressLevel = document.getElementById('stressLevel').value;
+            
+            // Calculate risk score using your rule-based logic
+            let score = 0;
+            if (sleepHours < 6) score += 2;
+            if (difficultyFalling === 'yes') score += 1;
+            if (nightAwakenings === 'often') score += 2;
+            if (daytimeSleepiness === 'high') score += 2;
+            if (screenUsage === 'yes') score += 1;
+            if (stressLevel === 'high') score += 2;
+            
+            // Determine risk level and messages
+            let riskLevel, message, suggestions;
+            if (score <= 3) {
+                riskLevel = 'Low Risk';
+                message = 'Your inputs suggest a low risk of sleep disorders. Keep up the good habits!';
+                suggestions = 'Continue maintaining a consistent sleep schedule and healthy lifestyle.';
+            } else if (score <= 6) {
+                riskLevel = 'Moderate Risk';
+                message = 'You are at moderate risk of sleep disorders. Consider making small changes.';
+                suggestions = 'Try reducing screen time before bed, managing stress, and aiming for 7-9 hours of sleep.';
+            } else {
+                riskLevel = 'High Risk';
+                message = 'You are at high risk of sleep disorders. It\'s important to address this.';
+                suggestions = 'Consult a healthcare professional. Focus on a fixed sleep schedule, relaxation techniques, and limiting caffeine.';
+            }
+            
+            // Display results
+            document.getElementById('riskLevel').textContent = riskLevel;
+            document.getElementById('riskScore').textContent = score;
+            document.getElementById('healthMessage').textContent = message;
+            document.getElementById('suggestions').textContent = suggestions;
+            document.getElementById('results').style.display = 'block';
+            
+            // Optional: Render chart with Chart.js
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Your Risk Score'],
+                    datasets: [{
+                        label: 'Score',
+                        data: [score],
+                        backgroundColor: score > 6 ? 'rgba(255, 99, 132, 0.2)' : score > 3 ? 'rgba(255, 205, 86, 0.2)' : 'rgba(75, 192, 192, 0.2)',
+                        borderColor: score > 6 ? 'rgba(255, 99, 132, 1)' : score > 3 ? 'rgba(255, 205, 86, 1)' : 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { beginAtZero: true, max: 10 }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
